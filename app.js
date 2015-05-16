@@ -1,16 +1,12 @@
-var http = require('http');
-var port = process.env.PORT || 2345;
+var express = require('express');
+var app = express();
 
-module.exports = http.createServer(function (req, res) {
-  res.writeHead(404, {'Content-Type': 'text/plain'});
+app.set('port', (process.env.PORT || 2345));
 
-  if (req.url.indexOf('/suggestions') === 0) {
-    res.end(JSON.stringify({
-      suggestions: []
-    }));
-  } else {
-    res.end();
-  }
-}).listen(port, '127.0.0.1');
+app.get('/suggestions', function(request, response) {
+    response.json([]);
+});
 
-console.log('Server running at http://127.0.0.1:%d/suggestions', port);
+app.listen(app.get('port'), function() {
+    console.log('Node app is running on port', app.get('port'));
+});
