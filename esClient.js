@@ -10,13 +10,13 @@ function post(path, body, isJson) {
         method: "POST",
         json: !!isJson,
         body: body
-    })
-    .on('error', function(err) {
-        console.log(err);
-        deferred.reject(err);
-    })
-    .on('response', function() {
-        deferred.resolve();
+    }, function(err, response, body) {
+        if (err) {
+            console.log(err);
+            deferred.reject(err);
+        } else {
+            deferred.resolve(body);
+        }
     });
     return deferred.promise;
 }
