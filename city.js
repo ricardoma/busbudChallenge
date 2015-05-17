@@ -2,13 +2,15 @@ var esClient = require('./esClient');
 
 var _offset = '5km';
 var _scale = '50km';
+var _perPage = 20;
 
 function parseQuery(queryParams) {
     return {
         name: queryParams.q || '',
         lat: queryParams.latitude,
         lon: queryParams.longitude,
-        distance: queryParams.distance
+        distance: queryParams.distance,
+        from: (queryParams.page || 0) * _perPage
     }
 }
 
@@ -81,6 +83,7 @@ function buildESQuery(queryParams) {
         query = queryWithName(queryParams.name);
     }
     query.size = 20;
+    query.from = queryParams.from;
     return query;
 }
 
