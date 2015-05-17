@@ -5,12 +5,17 @@ var _scale = '50km';
 var _perPage = 20;
 
 function parseQuery(queryParams) {
-    return {
-        name: queryParams.q || '',
-        lat: queryParams.latitude,
-        lon: queryParams.longitude,
-        distance: queryParams.distance,
-        from: (queryParams.page || 0) * _perPage
+    if ((queryParams.q === undefined && (queryParams.latitude === undefined || queryParams.longitude === undefined)) ||
+        (queryParams.latitude !== undefined && isNaN(queryParams.latitude)) ||
+        (queryParams.longitude !== undefined && isNaN(queryParams.longitude))) {
+        return false;
+    } else {
+        return {
+            name: queryParams.q || '',
+            lat: queryParams.latitude,
+            lon: queryParams.longitude,
+            from: (queryParams.page || 0) * _perPage
+        }
     }
 }
 
@@ -23,11 +28,11 @@ function queryWithCoordinates(lat, lon, name) {
                         "gauss": {
                             "location": {
                                 "origin": {
-                                    "lat":lat,
-                                    "lon":lon
+                                    "lat": lat,
+                                    "lon": lon
                                 },
-                                "offset":_offset,
-                                "scale":_scale
+                                "offset": _offset,
+                                "scale": _scale
                             }
                         }
                     }
@@ -66,10 +71,10 @@ function queryWithName(name) {
 function parseOutput(documents) {
     var maxScore = documents.hits.max_score;
     return documents.hits.hits
-        .filter(function(doc) {
+        .filter(function (doc) {
             return doc._score / maxScore > 0.05
         })
-        .map(function(doc) {
+        .map(function (doc) {
             var source = doc._source;
             return {
                 score: doc._score / maxScore,
@@ -98,20 +103,28 @@ function buildESQuery(queryParams) {
 
 module.exports = {
 
-    query: function(req, res) {
-        var queryParams = parseQuery(req.query);
-        var esQuery = buildESQuery(queryParams);
+    query: function (req, res) {
+        var queryParams;
+        var esQuery;
+
+        queryParams = parseQuery(req.query);
+        if (queryParams === false) { //There is an error in the query params
+            res.status(400).send('Bad request, expecting q or numerical latitude and longitude');
+            return;
+        }
+
+        esQuery = buildESQuery(queryParams);
 
         console.log(JSON.stringify(esQuery));
 
         esClient.post('busbud/city/_search', esQuery)
-            .then(function(documents) {
+            .then(function (documents) {
                 documents = parseOutput(documents);
                 if (documents.length === 0) {
                     res.status(404);
                 }
                 res.json({suggestions: documents});
-            }, function(err) {
+            }, function (err) {
                 res.status(500).json({error: err});
             });
     }
