@@ -97,7 +97,11 @@ module.exports = {
 
         esClient.post('busbud/city/_search', esQuery)
             .then(function(documents) {
-                res.json(parseOutput(documents));
+                documents = parseOutput(documents);
+                if (documents.length === 0) {
+                    res.status(404);
+                }
+                res.json({suggestions: documents});
             }, function(err) {
                 res.status(500).json({error: err});
             });
