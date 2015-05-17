@@ -90,7 +90,7 @@ function readTsv() {
                 return {
                     _id: city.id,
                     names_array: names_array,
-                    name: city.name,
+                    name: city.ascii,
                     location: {
                         lat: Number(city.lat),
                         lon: Number(city.long)
