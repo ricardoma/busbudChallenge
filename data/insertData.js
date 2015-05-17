@@ -47,9 +47,12 @@ function createCityMapping() {
     var query = {
         "city": {
             "properties": {
-                "name": {
+                "names_array": {
                     "type": "string",
                     "analyzer": "autocomplete"
+                },
+                "name": {
+                    "type": "string"
                 },
                 "location": {
                     "type": "geo_point"
@@ -79,8 +82,14 @@ function readTsv() {
             console.error(err);
         }else {
             results = results.map(function(city){
+                var names_array;
+
+                if (city.name !== city.ascii) { names_array= [city.name, city.ascii]; }
+                else { names_array = [city.name] }
+
                 return {
                     _id: city.id,
+                    names_array: names_array,
                     name: city.name,
                     location: {
                         lat: Number(city.lat),
