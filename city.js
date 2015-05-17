@@ -1,5 +1,8 @@
 var esClient = require('./esClient');
 
+var _offset = '5km';
+var _scale = '50km';
+
 function parseQuery(queryParams) {
     return {
         name: queryParams.q || '',
@@ -9,46 +12,61 @@ function parseQuery(queryParams) {
     }
 }
 
-function withCoordinatesFilter(lat, lon, distance) {
+function queryWithCoordinates(lat, lon, name) {
+    var query = {
+        query: {
+            function_score: {
+                functions: [
+                    {
+                        "gauss": {
+                            "location": {
+                                "origin": {
+                                    "lat":lat,
+                                    "lon":lon
+                                },
+                                "offset":_offset,
+                                "scale":_scale
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    };
+
+    if (name) {
+        query.query.function_score.query = {
+            "match": {
+                "name": {
+                    "query": name,
+                    "analyzer": "standard"
+                }
+            }
+        }
+    }
+
+    return query;
+}
+
+function queryWithName(name) {
     return {
-        "geo_distance": {
-            "distance": distance || '100km',
-            "location": {
-                "lat": lat,
-                "lon": lon
+        query: {
+            "match": {
+                "name": {
+                    "query": name,
+                    "analyzer": "standard"
+                }
             }
         }
     }
 }
 
-function withCityName(q) {
-    return {
-            "match": {
-                "name": {
-                    "query": q,
-                    "analyzer": "standard"
-                }
-            }
-        }
-}
-
 function buildESQuery(queryParams) {
     var query;
     if (queryParams.lat !== undefined && queryParams.lon !== undefined) {
-        query = {
-            query : {
-                filtered: {
-                    filter: withCoordinatesFilter(queryParams.lat, queryParams.lon, queryParams.distance)
-                }
-            }
-        };
-        if (queryParams.name) {
-            query.query.filtered.query = withCityName(queryParams.name)
-        }
+        query = queryWithCoordinates(queryParams.lat, queryParams.lon, queryParams.name);
     } else {
-        query = {
-            query: withCityName(queryParams.name)
-        }
+        query = queryWithName(queryParams.name);
     }
     return query;
 }
