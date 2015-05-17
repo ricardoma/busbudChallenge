@@ -61,6 +61,18 @@ function queryWithName(name) {
     }
 }
 
+function parseOutput(documents) {
+    var maxScore = documents.hits.max_score;
+    return documents.hits.hits
+        .filter(function(doc) {
+            return doc._score / maxScore > 0.05
+        })
+        .map(function(doc) {
+            doc._source.score = doc._score / maxScore;
+            return doc._source;
+        })
+}
+
 function buildESQuery(queryParams) {
     var query;
     if (queryParams.lat !== undefined && queryParams.lon !== undefined) {
@@ -68,6 +80,7 @@ function buildESQuery(queryParams) {
     } else {
         query = queryWithName(queryParams.name);
     }
+    query.size = 20;
     return query;
 }
 
@@ -80,8 +93,8 @@ module.exports = {
         console.log(JSON.stringify(esQuery));
 
         esClient.post('busbud/city/_search', esQuery)
-            .then(function(result) {
-                res.json(result);
+            .then(function(documents) {
+                res.json(parseOutput(documents));
             });
     }
 
