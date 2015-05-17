@@ -75,7 +75,8 @@ function parseOutput(documents) {
                 score: doc._score / maxScore,
                 _id: source._id,
                 name: source.name,
-                location: source.location,
+                latitude: source.location.lat,
+                longitude: source.location.lon,
                 country: source.country,
                 population: source.population,
                 tz: source.tz
