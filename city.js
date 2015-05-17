@@ -39,7 +39,7 @@ function queryWithCoordinates(lat, lon, name) {
     if (name) {
         query.query.function_score.query = {
             "match": {
-                "name": {
+                "names_array": {
                     "query": name,
                     "analyzer": "standard"
                 }
@@ -54,7 +54,7 @@ function queryWithName(name) {
     return {
         query: {
             "match": {
-                "name": {
+                "names_array": {
                     "query": name,
                     "analyzer": "standard"
                 }
@@ -70,8 +70,16 @@ function parseOutput(documents) {
             return doc._score / maxScore > 0.05
         })
         .map(function(doc) {
-            doc._source.score = doc._score / maxScore;
-            return doc._source;
+            var source = doc._source;
+            return {
+                score: doc._score / maxScore,
+                _id: source._id,
+                name: source.name,
+                location: source.location,
+                country: source.country,
+                population: source.population,
+                tz: source.tz
+            }
         })
 }
 
