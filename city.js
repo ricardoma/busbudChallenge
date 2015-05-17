@@ -6,6 +6,8 @@ var _perPage = 20;
 
 function parseQuery(queryParams) {
     if ((queryParams.q === undefined && (queryParams.latitude === undefined || queryParams.longitude === undefined)) ||
+        (queryParams.latitude === undefined && queryParams.longitude !== undefined) ||
+        (queryParams.latitude !== undefined && queryParams.longitude === undefined) ||
         (queryParams.latitude !== undefined && isNaN(queryParams.latitude)) ||
         (queryParams.longitude !== undefined && isNaN(queryParams.longitude))) {
         return false;

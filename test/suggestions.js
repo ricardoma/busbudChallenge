@@ -26,6 +26,46 @@ describe('GET /suggestions', function () {
         });
     });
 
+    describe('with incorrect parameters', function () {
+        var cases = {
+            responseWithoutParams: {url: '/suggestions', response: undefined},
+            responseWithoutLatitude: {url: '/suggestions?longitude=67.3', response: undefined},
+            responseWithoutLongitude: {url: '/suggestions?latitude=67.3', response: undefined},
+            responseWithNonNumericalLatitude: {url: '/suggestions?latitude=notANumber&longitude=67.3', response: undefined},
+            responseWithNonNumericalLongitude: {url: '/suggestions?longitude=notANumber&latitude=67.3', response: undefined}
+        };
+
+        before(function (done) {
+            var counter = 0;
+
+            function completed() {
+                counter++;
+                if (counter === 5) done();
+            }
+
+            function makeRequest(c) {
+                request
+                    .get(c.url)
+                    .end(function (err, res) {
+                        c.response = res;
+                        completed();
+                    });
+            }
+
+            for (var key in cases) {
+                makeRequest(cases[key]);
+            }
+        });
+
+        it('returns a 400', function () {
+            for (var key in cases) {
+                var c = cases[key];
+                expect(c.response.statusCode).to.equal(400);
+            }
+        });
+
+    });
+
     describe('with a valid city', function () {
         var response;
 
