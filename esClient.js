@@ -1,12 +1,13 @@
 var Q = require('Q');
 var request = require('request');
 
-var ES_HOST = 'https://y12oj0lb:l4qi1edxatymw658@cypress-1961501.us-east-1.bonsai.io/';
+// URL of elasticsearch
+var ES_URL;
 
 function post(path, body, isJson) {
     var deferred = Q.defer();
     request({
-        url: ES_HOST + path,
+        url: ES_URL + path,
         method: "POST",
         json: !!isJson,
         body: body
@@ -38,6 +39,11 @@ module.exports = {
 
     post: function (path, body) {
         return post(path, body, true);
+    },
+
+    setEsUrl: function(url) {
+        ES_URL = url
+        console.log(ES_URL);
     },
 
     batchInsert: batchInsert
