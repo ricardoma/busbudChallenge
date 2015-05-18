@@ -1,4 +1,4 @@
-var tsv = require("node-tsv-json");
+var tsv = require('node-tsv-json');
 var Q = require('q');
 var request = require('request');
 var esClient = require('../esClient');
@@ -24,26 +24,26 @@ createIndex()
         process.exit(1);
     });
 
-
+// Creates the edge_ngram used in the 'autocomplete' analyzer filter and the 'busbud' index
 function createIndex() {
     var query = {
-        "settings": {
-            "number_of_shards": 1,
-            "analysis": {
-                "filter": {
-                    "autocomplete_filter": {
-                        "type": "edge_ngram",
-                        "min_gram": 1,
-                        "max_gram": 20
+        'settings': {
+            'number_of_shards': 1,
+            'analysis': {
+                'filter': {
+                    'autocomplete_filter': {
+                        'type': 'edge_ngram',
+                        'min_gram': 1,
+                        'max_gram': 20
                     }
                 },
-                "analyzer": {
-                    "autocomplete": {
-                        "type": "custom",
-                        "tokenizer": "standard",
-                        "filter": [
-                            "lowercase",
-                            "autocomplete_filter"
+                'analyzer': {
+                    'autocomplete': {
+                        'type': 'custom',
+                        'tokenizer': 'standard',
+                        'filter': [
+                            'lowercase',
+                            'autocomplete_filter'
                         ]
                     }
                 }
@@ -54,28 +54,29 @@ function createIndex() {
     return esClient.post('busbud', query);
 }
 
+// Creates the city mapping
 function createCityMapping() {
     var query = {
-        "city": {
-            "properties": {
-                "names_array": {
-                    "type": "string",
-                    "analyzer": "autocomplete"
+        'city': {
+            'properties': {
+                'names_array': {
+                    'type': 'string',
+                    'analyzer': 'autocomplete'
                 },
-                "name": {
-                    "type": "string"
+                'name': {
+                    'type': 'string'
                 },
-                "location": {
-                    "type": "geo_point"
+                'location': {
+                    'type': 'geo_point'
                 },
-                "country": {
-                    "type": "string"
+                'country': {
+                    'type': 'string'
                 },
-                "population": {
-                    "type": "integer"
+                'population': {
+                    'type': 'integer'
                 },
-                "tz": {
-                    "type": "string"
+                'tz': {
+                    'type': 'string'
                 }
             }
         }
@@ -84,10 +85,11 @@ function createCityMapping() {
     return esClient.post('busbud/_mapping/city', query);
 }
 
+// Read the cities tsv and extract the useful fields
 function readTsv() {
     var deferred = Q.defer();
     tsv({
-        input: __dirname + "/cities_canada-usa.tsv"
+        input: __dirname + '/cities_canada-usa.tsv'
     }, function(err, results) {
         if(err) {
             console.error(err);
@@ -117,6 +119,7 @@ function readTsv() {
     return deferred.promise;
 }
 
+// Use the bulkInsert function to insert all the cities in one API call
 function bulkInsert(cities) {
     return esClient.batchInsert('busbud', 'city', cities);
 }
