@@ -13,17 +13,18 @@ To solve the coding challenge I decided to use Elasticsearch, due to the followi
 
 My first step was to familiarize myself with Elasticsearch API (it's really verbose).
 Once I was familiar enough, I created a lightweight client to talk to Elasticsearch's http API, using the following node modules: 'request' and 'Q'.
+
 After, I created a script called insertData.js which reads the cities from the tsv and inserts them into ES using the _bulk API.
 The next step was to install express.js and create the city.js module which performs the queries to ES.
 
 ### Details about Elasticsearch index, mappings, queries and scores
 
-- The field that's used to perform queries by name is called 'names_array'. If the name and ascii field are different, it adds both to the array and index them. This was done to handle cases like Montreal and Montréal.
+- The field that's used to perform queries by name is called 'names_array'. It's an array because there are cities where the name and ascii fields are different, like Montreal and Montréal.
 - I created a filter called autocomplete_filter which is indexed as an 'edge-gram'. This means that for each name, up to 20 edge-grams are created. Ex: When indexing Toronto the following entries would be created: [t], [to], [tor], [toro], [toron], [toront], [toronto]. The goal of this index is to provide extremely fast autocompletion.
-- The location are indexed as geo_points.
+- The locations are indexed as geo_points.
 - There are two types of queries:
     - Only q: Queries that only contain the q parameter, the scores for this type of query are calculate automatically by ES.
-    - By Location: Queries that contain latitude, longitude and/or q. These queries use a special function to calculate the score. I decided to use a gaussian function, this function uses two parameters offset and scale. If the coordinates of the point are within the offset radious, the score is 1. After, for each range that's away it loses score. This is combined with the text score in case q was supplied.
+    - By Location: Queries that contain latitude, longitude and/or q. These queries use a special function to calculate the score. I decided to use a gaussian function (https://www.elastic.co/guide/en/elasticsearch/reference/1.x/query-dsl-function-score-query.html#_decay_functions), this function uses two parameters offset and scale. If the coordinates of the point are within the offset radious, the score is 1. After, for each range factor the score goes down. This is combined with the text score in case q was supplied.
 
 ## Documentation
 
@@ -40,7 +41,7 @@ Examples:
 
 - By city name: https://busbudchallenge.herokuapp.com/suggestions?q=toron
 - By city name and location: https://busbudchallenge.herokuapp.com/suggestions?q=toron&latitude=43.70011&longitude=-79.4163
-- By location: https://busbudchallenge.herokuapp.com/suggestions?latitude=43.70011&longitude=-79.4163
+- By location: https://busbudchallenge.herokuapp.com/suggestions?latitude=43.70011&longitude=-79.4163&page=1
 
 To run the project locally:
 
