@@ -34,7 +34,7 @@ To make queries the following parameters can be passed:
 - q: Partial/full name of the city
 - latitude: Latitude of interest
 - longitude: Longitude of interest
-- page: The API returns 20 elements per page, a numerical page can be set to access subsequent pages.
+- page: The API returns 20 elements per page, starting from page=0. To access the next 20 elements set page to 1, and so on.
 
 Examples:
 
