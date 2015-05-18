@@ -1,5 +1,5 @@
 // Lightweight client to query elasticsearch, makes requests and returns promises
-var Q = require('Q');
+var Q = require('q');
 var request = require('request');
 
 // URL of elasticsearch
