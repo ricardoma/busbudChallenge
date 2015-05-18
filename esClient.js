@@ -45,8 +45,9 @@ module.exports = {
     },
 
     setEsUrl: function(url) {
-        ES_URL = url
-        console.log(ES_URL);
+        // Add slash if necessary
+        if (url[url.length - 1] !== '/') url += '/';
+        ES_URL = url;
     },
 
     batchInsert: batchInsert
