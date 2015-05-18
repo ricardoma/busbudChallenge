@@ -1,4 +1,55 @@
-# Busbud Coding Challenge [![Build Status](https://circleci.com/gh/busbud/coding-challenge-backend-c/tree/master.png?circle-token=6e396821f666083bc7af117113bdf3a67523b2fd)](https://circleci.com/gh/busbud/coding-challenge-backend-c)
+# Solution to Busbud Coding Challenge
+
+## Description
+
+Hi Busbud Team,
+
+To solve the coding challenge I decided to use Elasticsearch, due to the following reasons:
+- Designed to work with text indexes.
+- Built in support for coordinates/location queries.
+- Ability to scale horizontally by adding more nodes.
+- I've experience using mongoDB and mySQL full text indexing, and it's nowhere near as strong as ES. MongoDB, is only able to index full words.
+- Learn a new tool.
+
+My first step was to familiarize myself with Elasticsearch API (it's really verbose).
+Once I was familiar enough, I created a lightweight client to talk to Elasticsearch's http API, using the following node modules: 'request' and 'Q'.
+After, I created a script called insertData.js which reads the cities from the tsv and inserts them into ES using the _bulk API.
+The next step was to install express.js and create the city.js module which performs the queries to ES.
+
+### Details about Elasticsearch index, mappings, queries and scores
+
+- The field that's used to perform queries by name is called 'names_array'. If the name and ascii field are different, it adds both to the array and index them. This was done to handle cases like Montreal and Montréal.
+- I created a filter called autocomplete_filter which is indexed as an 'edge-gram'. This means that for each name, up to 20 edge-grams are created. Ex: When indexing Toronto the following entries would be created: [t], [to], [tor], [toro], [toron], [toront], [toronto]. The goal of this index is to provide extremely fast autocompletion.
+- The location are indexed as geo_points.
+- There are two types of queries:
+    - Only q: Queries that only contain the q parameter, the scores for this type of query are calculate automatically by ES.
+    - By Location: Queries that contain latitude, longitude and/or q. These queries use a special function to calculate the score. I decided to use a gaussian function, this function uses two parameters offset and scale. If the coordinates of the point are within the offset radious, the score is 1. After, for each range that's away it loses score. This is combined with the text score in case q was supplied.
+
+## Documentation
+
+The project is live at: https://busbudchallenge.herokuapp.com/suggestions
+
+To make queries the following parameters can be passed:
+
+- q: Partial/full name of the city
+- latitude: Latitude of interest
+- longitude: Longitude of interest
+- page: The API returns 20 elements per page, a numerical page can be set to access subsequent pages.
+
+Examples:
+
+- By city name: https://busbudchallenge.herokuapp.com/suggestions?q=toron
+- By city name and location: https://busbudchallenge.herokuapp.com/suggestions?q=toron&latitude=43.70011&longitude=-79.4163
+- By location: https://busbudchallenge.herokuapp.com/suggestions?latitude=43.70011&longitude=-79.4163
+
+To run the project locally:
+
+- Install Elasticsearch (https://www.elastic.co/downloads)
+- Start Elasticsearch: ./elasticsearch (From the installed directory)
+- Insert data to ES: ES_URL=http://localhost:9200 node data/insertData.js
+- Run application: ES_URL=http://localhost:9200 node app.js
+- Open: http://localhost:2345/suggestions and start querying cities!!
+
 
 ## Requirements
 
