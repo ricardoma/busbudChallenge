@@ -3,14 +3,25 @@ var Q = require('q');
 var request = require('request');
 var esClient = require('../esClient');
 
+var _elasticSearchUrl = process.env.ES_URL;
+
+if (!_elasticSearchUrl) {
+    console.log('Missing ES_URL environment variable to connect to Elasticsearch');
+    process.exit(1);
+} else {
+    esClient.setEsUrl(_elasticSearchUrl);
+}
+
 createIndex()
     .then(createCityMapping)
     .then(readTsv)
     .then(bulkInsert)
     .then(function(){
         console.log('Successfully created Index: "busbud", Mapping: "city" and inserted cities');
+        process.exit(0);
     }, function(error) {
         console.log('Error ocurred when creating and inserting the cities to ES: \n', error);
+        process.exit(1);
     });
 
 
