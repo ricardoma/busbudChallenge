@@ -1,3 +1,4 @@
+// Lightweight client to query elasticsearch, makes requests and returns promises
 var Q = require('Q');
 var request = require('request');
 
@@ -22,6 +23,8 @@ function post(path, body, isJson) {
     return deferred.promise;
 }
 
+// To use elasticsearch bulk API, the body of the request must be in plain text.
+// Composed of: operation \n document \n operation \n document
 function batchInsert(index, type, documents) {
     var body = '';
     var insertTemplate = { "create":  { "_index": index, "_type": type, "_id": undefined }};
