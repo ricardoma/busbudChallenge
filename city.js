@@ -1,9 +1,12 @@
 var esClient = require('./esClient');
 
+// Any city that's within 5km of the supplied coordinate will have a score of 1
 var _offset = '5km';
+// 50km is the rate of decay for the score, the farthest the lower the score will be
 var _scale = '50km';
 var _perPage = 20;
 
+// Validate supplied parameters and return valid fields
 function parseQuery(queryParams) {
     if ((queryParams.q === undefined && (queryParams.latitude === undefined || queryParams.longitude === undefined)) ||
         (queryParams.latitude === undefined && queryParams.longitude !== undefined) ||
@@ -21,6 +24,7 @@ function parseQuery(queryParams) {
     }
 }
 
+// This query will be used if the users supplies coordinates, and it uses the gaussian function to rank cities
 function queryWithCoordinates(lat, lon, name) {
     var query = {
         query: {
@@ -57,6 +61,7 @@ function queryWithCoordinates(lat, lon, name) {
     return query;
 }
 
+// This query will be used if the user doesn't supply coordinates
 function queryWithName(name) {
     return {
         query: {
@@ -70,6 +75,7 @@ function queryWithName(name) {
     }
 }
 
+// This function filters documents with less than 5% accuracy, and maps the documents to the correct API format
 function parseOutput(documents) {
     var maxScore = documents.hits.max_score;
     return documents.hits.hits
@@ -91,6 +97,7 @@ function parseOutput(documents) {
         })
 }
 
+// Builds query to be sent to ES, determines which query to use and append the size and from properties
 function buildESQuery(queryParams) {
     var query;
     if (queryParams.lat !== undefined && queryParams.lon !== undefined) {
@@ -110,15 +117,14 @@ module.exports = {
         var esQuery;
 
         queryParams = parseQuery(req.query);
-        if (queryParams === false) { //There is an error in the query params
+
+        //Check if there is an error in the query params
+        if (queryParams === false) {
             res.status(400).send('Bad request, expecting q or numerical latitude and longitude');
             return;
         }
 
         esQuery = buildESQuery(queryParams);
-
-        console.log(JSON.stringify(esQuery));
-
         esClient.post('busbud/city/_search', esQuery)
             .then(function (documents) {
                 documents = parseOutput(documents);
